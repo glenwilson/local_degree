@@ -1,6 +1,5 @@
 from sympy import div, Matrix
 
-
 def compute_E(f, sym):
     """
 
