@@ -18,8 +18,10 @@ G=groebner([e,f], MyVars[0], MyVars[1], order='grevlex', domain='QQ')
 print(G)
 print(type(G))
 print(G.is_zero_dimensional)
-m = MyVars[0]**3
+m = MyVars[0]**3 + MyVars[1]**2
 m.as_poly(domain='QQ')
+print("the type of m")
+print(type(m))
 print(G.reduce(m))
 print(G._basis)
 print(type(G._basis[0]))
