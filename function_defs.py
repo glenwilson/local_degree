@@ -1,4 +1,4 @@
-from sympy import div, Matrix, itermonomials
+from sympy import div, Matrix, itermonomials, groebner, Poly, Monomial, Expr
 from sympy.polys.orderings import monomial_key
 
 def compute_E(f, sym):
@@ -102,3 +102,49 @@ def similarity_diagonalize(M):
         return diag
     else:
         return diag + similarity_diagonalize(M.extract(range(1,n),range(1,n)))
+
+
+def two_dim_EKL(f, sym):
+    """Input is a polynomial function f, which in this case is a list of
+    two polynomials in two variables. Sym is a list of the symbols
+    used as variables in the polynomial.
+
+    The output is the diagonal entries in the EKL class
+    """
+    E = compute_E(f, sym)
+    G = groebner(f, sym, order='grevlex')
+    if not G.is_zero_dimensional:
+        raise TypeError("The polynomial chosen does not yield a 0-dimensional variety")
+    #Bounds tells us the outer limits of the basis for the quotient 
+    Bounds = [g.LM(order='grevlex').exponents for g in G]
+    Quotient = twovar_list(Bounds)
+    N = len(Quotient)
+    #N is the dimension of the quotient ring as a k-vector space. This
+    #enables us to sort out the localization at 0 by further modding
+    #out.
+    f_loc = f + [Poly(sym[0]**N), Poly(sym[1]**N)]
+    G_loc = groebner(f_loc, sym, order='grevlex')
+    Bounds_loc = [g.LM(order='grevlex').exponents for g in G_loc]
+    Q_loc = twovar_list(Bounds_loc)
+    Q_Mon = [Monomial(exp, sym) for exp in Q_loc]
+    #E reduced mod G_loc
+    E_red = G_loc.reduce(E.as_expr())[1]
+    #Take the first non-zero monomial term in E_red to be the basis
+    #element that phi evaluates to be non-zero
+    E_mon = E_red.terms()[0]
+    #print("dim of Q_0(f)", len(Q_Mon))
+    AA = []
+    for a in Q_Mon:
+        Row = []
+        for b in Q_Mon:
+            c = a*b
+            q = G_loc.reduce(c.as_expr())[1]
+            #print("c", c, 'reduced', q)
+            #print(div(q, E_red)[0])
+            #print(phi(c, E_mon, G))
+            Row.append(phi(c, E_mon, G_loc))
+        AA.append(Row)
+    AA = Matrix(AA)
+    #print(AA)
+    return similarity_diagonalize(AA)
+
