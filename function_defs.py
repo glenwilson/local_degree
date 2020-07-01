@@ -1,5 +1,7 @@
 from sympy import div, Matrix, itermonomials, groebner, Poly, Monomial, Expr
 from sympy.polys.orderings import monomial_key
+from random import randint
+from sympy.polys.monomials import itermonomials
 
 def compute_E(f, sym):
     """
@@ -30,7 +32,7 @@ def onevar_list(Bounds):
 
 def twovar_list(Bounds):
     Bounds =sorted(Bounds, key=monomial_key(order='lex'))
-    print(Bounds)
+    #print(Bounds)
     out = []
     for i in range(len(Bounds)-1):
         b = Bounds[i]
@@ -119,11 +121,13 @@ def two_dim_EKL(f, sym):
     Bounds = [g.LM(order='grevlex').exponents for g in G]
     Quotient = twovar_list(Bounds)
     N = len(Quotient)
+    #print(N, G)
     #N is the dimension of the quotient ring as a k-vector space. This
     #enables us to sort out the localization at 0 by further modding
     #out.
     f_loc = f + [Poly(sym[0]**N), Poly(sym[1]**N)]
     G_loc = groebner(f_loc, sym, order='grevlex')
+    #print(G_loc)
     Bounds_loc = [g.LM(order='grevlex').exponents for g in G_loc]
     Q_loc = twovar_list(Bounds_loc)
     Q_Mon = [Monomial(exp, sym) for exp in Q_loc]
@@ -148,3 +152,25 @@ def two_dim_EKL(f, sym):
     #print(AA)
     return similarity_diagonalize(AA)
 
+def rand_poly(deg_max, deg_min, n, sym):
+    """gives a random poly of degree deg with integer coefficients between
+    -n and n, using the variables of sym.
+
+    """
+    m = len(sym)
+    L = itermonomials(sym, deg_max, deg_min)
+    out = Poly('0', sym)
+    for l in L:
+        out += randint(-n,n) * l
+    return out
+
+def signature(diag):
+    out = 0
+    for x in diag:
+        if x>0:
+            out +=1
+        elif x<0:
+            out -= 1
+        else:
+            raise TypeError
+    return out
