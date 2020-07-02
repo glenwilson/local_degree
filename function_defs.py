@@ -164,6 +164,8 @@ def rand_poly(deg_max, deg_min, n, sym):
         out += randint(-n,n) * l
     return out
 
+
+
 def signature(diag):
     out = 0
     for x in diag:

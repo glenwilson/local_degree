@@ -1,6 +1,17 @@
 Use python 3.7
 Must install sympy and for that to work, need mpmath.
 
+To install mpmath:
+download the tarball or clone  the git repo
+python3.7 setup.py build
+python3.7 setup.py install
+
+
+To install sympy:
+clone the git repository
+
+python3.7 setup.py build
+python3.7 setup.py install
 
 run a basic example:
 python3.7 example.py
