@@ -32,12 +32,23 @@ def onevar_list(Bounds):
 
 def twovar_list(Bounds):
     Bounds =sorted(Bounds, key=monomial_key(order='lex'))
-    #print(Bounds)
     out = []
     for i in range(len(Bounds)-1):
         b = Bounds[i]
         c = Bounds[i+1]
         out = out + [(x, y) for x in range(b[0], c[0]) for y in range(0, b[1])]
+    return out
+
+def threevar_list(Bounds):
+    Bounds = sorted(Bounds, key=monomial_key(order='lex'))
+    Max = max([a[0] for a in Bounds])
+    #print(Max, "max")
+    out = []
+    for i in range(Max):
+        sub_bounds = [a[1:3] for a in Bounds if a[0] <= i]
+        #print(sub_bounds)
+        #print(twovar_list(Bounds))
+        out = out + [(i,) + x for x in twovar_list(sub_bounds)]
     return out
 
 def region_list(Bounds):
@@ -133,6 +144,7 @@ def two_dim_EKL(f, sym):
     Q_Mon = [Monomial(exp, sym) for exp in Q_loc]
     #E reduced mod G_loc
     E_red = G_loc.reduce(E.as_expr())[1]
+    #print("E reduced, ", E_red)
     #Take the first non-zero monomial term in E_red to be the basis
     #element that phi evaluates to be non-zero
     E_mon = E_red.terms()[0]
@@ -151,6 +163,56 @@ def two_dim_EKL(f, sym):
     AA = Matrix(AA)
     #print(AA)
     return similarity_diagonalize(AA)
+
+def three_dim_EKL(f, sym):
+    """Input is a polynomial function f, which in this case is a list of
+    two polynomials in two variables. Sym is a list of the symbols
+    used as variables in the polynomial.
+
+    The output is the diagonal entries in the EKL class
+    """
+    E = compute_E(f, sym)
+    G = groebner(f, sym, order='grevlex')
+    if not G.is_zero_dimensional:
+        raise TypeError("The polynomial chosen does not yield a 0-dimensional variety")
+    #Bounds tells us the outer limits of the basis for the quotient 
+    Bounds = [g.LM(order='grevlex').exponents for g in G]
+    print(Bounds)
+    Quotient = threevar_list(Bounds)
+    print(Quotient)
+    N = len(Quotient)
+    print(N, G)
+    #N is the dimension of the quotient ring as a k-vector space. This
+    #enables us to sort out the localization at 0 by further modding
+    #out.
+    f_loc = f + [Poly(sym[0]**N), Poly(sym[1]**N), Poly(sym[2]**N)]
+    G_loc = groebner(f_loc, sym, order='grevlex')
+    Bounds_loc = [g.LM(order='grevlex').exponents for g in G_loc]
+    Q_loc = threevar_list(Bounds_loc)
+    print(len(Q_loc), G_loc)
+    Q_Mon = [Monomial(exp, sym) for exp in Q_loc]
+    #E reduced mod G_loc
+    E_red = G_loc.reduce(E.as_expr())[1]
+    print("E reduced, ", E_red)
+    #Take the first non-zero monomial term in E_red to be the basis
+    #element that phi evaluates to be non-zero
+    E_mon = E_red.terms()[0]
+    #print("dim of Q_0(f)", len(Q_Mon))
+    AA = []
+    for a in Q_Mon:
+        Row = []
+        for b in Q_Mon:
+            c = a*b
+            q = G_loc.reduce(c.as_expr())[1]
+            #print("c", c, 'reduced', q)
+            #print(div(q, E_red)[0])
+            #print(phi(c, E_mon, G))
+            Row.append(phi(c, E_mon, G_loc))
+        AA.append(Row)
+    AA = Matrix(AA)
+    #print(AA)
+    return similarity_diagonalize(AA)
+
 
 def rand_poly(deg_max, deg_min, n, sym):
     """gives a random poly of degree deg with integer coefficients between
@@ -174,5 +236,6 @@ def signature(diag):
         elif x<0:
             out -= 1
         else:
+            print("diag for signature error", diag)
             raise TypeError
     return out
