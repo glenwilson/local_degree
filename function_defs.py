@@ -117,6 +117,14 @@ def similarity_diagonalize(M):
         return diag + similarity_diagonalize(M.extract(range(1,n),range(1,n)))
 
 
+def groebner_m_test(n, G, sym):
+    L = itermonomials(sym, n, 0)
+    for l in L:
+        test = Poly(0, sym)
+        if (test + l).total_degree() == n and G.reduce(l)[1] != 0:
+            print(l)
+            print(G.reduce(l)[1])
+
 def two_dim_EKL(f, sym):
     """Input is a polynomial function f, which in this case is a list of
     two polynomials in two variables. Sym is a list of the symbols
@@ -133,15 +141,17 @@ def two_dim_EKL(f, sym):
     Quotient = twovar_list(Bounds)
     N = len(Quotient)
     #print(N, G)
+    #print(Quotient)
     #N is the dimension of the quotient ring as a k-vector space. This
     #enables us to sort out the localization at 0 by further modding
     #out.
     f_loc = f + [Poly(sym[0]**N), Poly(sym[1]**N)]
     G_loc = groebner(f_loc, sym, order='grevlex')
-    #print(G_loc)
+    groebner_m_test(4, G_loc, sym)
     Bounds_loc = [g.LM(order='grevlex').exponents for g in G_loc]
     Q_loc = twovar_list(Bounds_loc)
     Q_Mon = [Monomial(exp, sym) for exp in Q_loc]
+    #print(Q_loc)
     #E reduced mod G_loc
     E_red = G_loc.reduce(E.as_expr())[1]
     #print("E reduced, ", E_red)
@@ -220,10 +230,12 @@ def rand_poly(deg_max, deg_min, n, sym):
 
     """
     m = len(sym)
-    L = itermonomials(sym, deg_max, deg_min)
+    L = itermonomials(sym, deg_max, 0)
     out = Poly('0', sym)
     for l in L:
-        out += randint(-n,n) * l
+        test = Poly('0', sym)
+        if (test + l).total_degree() > deg_min - 1:
+            out += randint(-n,n) * l
     return out
 
 

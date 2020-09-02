@@ -37,21 +37,33 @@ sym = [Symbol('x'+str(i)) for i in range(n)]
 x = sym[0]
 y = sym[1]
 
-f = [Poly(x**3-x**2+y**2), Poly((x-y)*(x+2*y))]
-EKL = two_dim_EKL(f, sym)
-print(EKL)
-print("rank: ", len(EKL), "signature: ", signature(EKL))
+# f = [Poly(x**3-x**2+y**2), Poly((x-y)*(x+2*y))]
+# EKL = two_dim_EKL(f, sym)
+# print(EKL)
+# print("rank: ", len(EKL), "signature: ", signature(EKL))
 
-for i in range(1000):
+EKL = two_dim_EKL([Poly(x**3 + 2*y**2*y + x*y), Poly(y**3 + x**2)], sym)
+print("rank of EKL", len(EKL), "signature", signature(EKL))
+print(EKL)
+
+for i in range(10):
+    v = rand_poly(4,4,5,sym)
+    w = rand_poly(4,4,5,sym)
+    P = rand_poly(3,3,5,sym) 
+    Q = rand_poly(3,3,5,sym) 
     s = rand_poly(1,1,5,sym)
     t = rand_poly(1,1,5,sym)
     u = rand_poly(1,1,5,sym)
-    P = rand_poly(4,3,5,sym) + s*t
-    Q = rand_poly(4,3,5,sym) + s*u
     try:
-        EKL = two_dim_EKL([P,Q], sym)
-        #print([P,Q])
+        print("new")
+        #print(P+s, "\n", Q+t)
+        EKL = two_dim_EKL([P+s*u,Q+t*u], sym)
         print("rank of EKL", len(EKL), "signature", signature(EKL))
+        print(EKL)
+        EKL = two_dim_EKL([v+P+s*u,w+Q+t*u], sym)
+        print("rank of EKL", len(EKL), "signature", signature(EKL))
+        print(EKL)
+
         #print("signature of EKL", signature(EKL))
         #print("EKL", EKL)
     except TypeError:
