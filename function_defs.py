@@ -147,7 +147,8 @@ def two_dim_EKL(f, sym):
     #out.
     f_loc = f + [Poly(sym[0]**N), Poly(sym[1]**N)]
     G_loc = groebner(f_loc, sym, order='grevlex')
-    groebner_m_test(4, G_loc, sym)
+    #groebner_m_test(4, G_loc, sym)
+    #print(G_loc)
     Bounds_loc = [g.LM(order='grevlex').exponents for g in G_loc]
     Q_loc = twovar_list(Bounds_loc)
     Q_Mon = [Monomial(exp, sym) for exp in Q_loc]
