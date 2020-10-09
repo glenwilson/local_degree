@@ -1,5 +1,5 @@
 from function_defs import *
-from sympy import Expr, Poly, Symbol, groebner, itermonomials, Monomial, Matrix
+from sympy import Expr, Poly, Symbol, groebner, itermonomials, Monomial, Matrix, compose, expand
 from sympy.polys.orderings import monomial_key
 from random import randint
 
@@ -46,26 +46,18 @@ EKL = two_dim_EKL([Poly(x**3 + 2*y**2*y + x*y), Poly(y**3 + x**2)], sym)
 print("rank of EKL", len(EKL), "signature", signature(EKL))
 print(EKL)
 
-for i in range(1000):
-    a = rand_poly(5,5,5,sym)
-    b = rand_poly(5,5,5,sym)
-    v = rand_poly(4,4,5,sym)
-    w = rand_poly(4,4,5,sym)
-    P = rand_poly(3,3,5,sym) 
-    Q = rand_poly(3,3,5,sym) 
-    try:
-        print("new")
-        EKL = two_dim_EKL([a+v+P+Poly(x*y),b+w+Q], sym)
-        if len(EKL) == 6:
-            #print(v+P+Poly(x*y), w+Q)
-            print("rank of EKL", len(EKL), "signature", signature(EKL))
-            print(EKL)
-            EKL = two_dim_EKL([v+P+Poly(x**2 + y**2),w+Q], sym)
-            print("rank of EKL", len(EKL), "signature", signature(EKL))
-            print(EKL)
-
-        #print("signature of EKL", signature(EKL))
-        #print("EKL", EKL)
-    except TypeError:
-        print("failure", [P,Q])
-        continue
+print("new")
+g = Poly(-x**3 - x**2*y + 4*x*y**2 +  2*y**3)
+f = Poly(2*x**3 - x**2*y - 5*x*y**2 - y**3)
+h = Poly(x*y)
+i = Poly(x**2-y**2)
+EKL = two_dim_EKL([f,g], sym)
+print("rank of EKL", len(EKL), "signature", signature(EKL))
+print(EKL)
+print(f, g)
+F = Poly(f.as_expr().subs([(x,h.as_expr()),(y,i.as_expr())], simultaneous=True), sym)
+G = Poly(g.as_expr().subs([(x,h.as_expr()),(y,i.as_expr())], simultaneous=True), sym)
+print(F, G)
+EKL = two_dim_EKL([F,G], sym)
+print("rank of EKL", len(EKL), "signature", signature(EKL))
+print(EKL)
