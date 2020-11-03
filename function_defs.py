@@ -33,10 +33,13 @@ def onevar_list(Bounds):
 def twovar_list(Bounds):
     Bounds =sorted(Bounds, key=monomial_key(order='lex'))
     out = []
-    for i in range(len(Bounds)-1):
-        b = Bounds[i]
-        c = Bounds[i+1]
-        out = out + [(x, y) for x in range(b[0], c[0]) for y in range(0, b[1])]
+    #first process out unnecessary bounds!
+    Max = max([a[0] for a in Bounds])
+    for i in range(Max):
+        sub_bounds = [a[1] for a in Bounds if a[0] <= i]
+        Min = min(sub_bounds)
+        out = out + [(i,j) for j in range(0,Min)]
+#    print(Bounds, "\n", out)
     return out
 
 def threevar_list(Bounds):
@@ -48,7 +51,8 @@ def threevar_list(Bounds):
         sub_bounds = [a[1:3] for a in Bounds if a[0] <= i]
         #print(sub_bounds)
         #print(twovar_list(Bounds))
-        out = out + [(i,) + x for x in twovar_list(sub_bounds)]
+        temp_bounds = sorted(twovar_list(sub_bounds), key=monomial_key(order='lex'))
+        out = out + [(i,) + x for x in temp_bounds]
     return out
 
 def region_list(Bounds):
@@ -188,11 +192,11 @@ def three_dim_EKL(f, sym):
         raise TypeError("The polynomial chosen does not yield a 0-dimensional variety")
     #Bounds tells us the outer limits of the basis for the quotient 
     Bounds = [g.LM(order='grevlex').exponents for g in G]
-    print(Bounds)
+    #print(Bounds)
     Quotient = threevar_list(Bounds)
-    print(Quotient)
+    #print(Quotient)
     N = len(Quotient)
-    print(N, G)
+    #print(N, G)
     #N is the dimension of the quotient ring as a k-vector space. This
     #enables us to sort out the localization at 0 by further modding
     #out.
@@ -200,11 +204,11 @@ def three_dim_EKL(f, sym):
     G_loc = groebner(f_loc, sym, order='grevlex')
     Bounds_loc = [g.LM(order='grevlex').exponents for g in G_loc]
     Q_loc = threevar_list(Bounds_loc)
-    print(len(Q_loc), G_loc)
+    #print(len(Q_loc), G_loc)
     Q_Mon = [Monomial(exp, sym) for exp in Q_loc]
     #E reduced mod G_loc
     E_red = G_loc.reduce(E.as_expr())[1]
-    print("E reduced, ", E_red)
+    #print("E reduced, ", E_red)
     #Take the first non-zero monomial term in E_red to be the basis
     #element that phi evaluates to be non-zero
     E_mon = E_red.terms()[0]
